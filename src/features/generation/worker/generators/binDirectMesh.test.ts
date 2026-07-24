@@ -260,6 +260,7 @@ describe('binDirectMesh — canBinUseDirectMesh gate', () => {
     ['label', { label: { ...DEFAULT_BIN_PARAMS.label, enabled: true } }],
     ['wall cutouts', { walls: { ...DEFAULT_BIN_PARAMS.walls, enabled: true } }],
     ['handles', { handles: { ...DEFAULT_BIN_PARAMS.handles, enabled: true } }],
+    ['sparse base', { sparseBase: { ...DEFAULT_BIN_PARAMS.sparseBase, enabled: true } }],
     ['wall pattern', { wallPattern: { ...DEFAULT_BIN_PARAMS.wallPattern, enabled: true } }],
     ['lid', { lid: { ...DEFAULT_BIN_PARAMS.lid, enabled: true } }],
     ['overhang', { overhang: { left: 2, right: 0, front: 0, back: 0 } }],

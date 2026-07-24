@@ -111,6 +111,64 @@ export const CONSTRAINT_RULES: readonly ConstraintRule[] = [
     reason: 'binDesigner.attachmentDisablesFlatFloor',
   },
 
+  // ── Base: sparse base ↔ flat / lightweight / magnet / screw ─────────────
+  {
+    description: 'Flat base disables sparse base (no socket for locators)',
+    source: 'base.flat',
+    when: (p) => p.base.style === 'flat',
+    disables: ['sparseBase'],
+    reason: 'binDesigner.flatFloorDisablesSparseBase',
+  },
+  {
+    description: 'Sparse base incompatible with flat floor',
+    source: 'sparseBase',
+    when: (p) => p.sparseBase.enabled,
+    disables: ['base.flat'],
+    reason: 'binDesigner.sparseBaseDisablesFlatFloor',
+  },
+  {
+    description: 'Lightweight floor disables sparse base (already reshapes the socket)',
+    source: 'base.lightweight',
+    when: (p) => p.base.lightweight,
+    disables: ['sparseBase'],
+    reason: 'binDesigner.lightweightDisablesSparseBase',
+  },
+  {
+    description: 'Sparse base incompatible with lightweight floor',
+    source: 'sparseBase',
+    when: (p) => p.sparseBase.enabled,
+    disables: ['base.lightweight'],
+    reason: 'binDesigner.sparseBaseDisablesLightweight',
+  },
+  {
+    description: 'Magnet holes disable sparse base (need full feet to hold the magnets)',
+    source: 'base.magnet',
+    when: (p) => p.base.style === 'magnet' || p.base.style === 'magnet_and_screw',
+    disables: ['sparseBase'],
+    reason: 'binDesigner.magnetDisablesSparseBase',
+  },
+  {
+    description: 'Sparse base incompatible with magnet holes',
+    source: 'sparseBase',
+    when: (p) => p.sparseBase.enabled,
+    disables: ['base.magnet'],
+    reason: 'binDesigner.sparseBaseDisablesMagnet',
+  },
+  {
+    description: 'Screw holes disable sparse base (need full feet)',
+    source: 'base.screw',
+    when: (p) => p.base.style === 'screw' || p.base.style === 'magnet_and_screw',
+    disables: ['sparseBase'],
+    reason: 'binDesigner.screwDisablesSparseBase',
+  },
+  {
+    description: 'Sparse base incompatible with screw holes',
+    source: 'sparseBase',
+    when: (p) => p.sparseBase.enabled,
+    disables: ['base.screw'],
+    reason: 'binDesigner.sparseBaseDisablesScrew',
+  },
+
   // ── Style: slotted ───────────────────────────────────────────────────────
   {
     description: 'Slotted style disables compartments',

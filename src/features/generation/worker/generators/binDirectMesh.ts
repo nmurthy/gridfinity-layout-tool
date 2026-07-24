@@ -378,6 +378,7 @@ export function canBinUseDirectMesh(params: BinParams): boolean {
   if (params.label.enabled) return false;
   if (params.walls.enabled) return false;
   if (params.handles.enabled) return false;
+  if (params.sparseBase.enabled) return false;
   // slotConfig is inert unless the body style is 'slotted' (already rejected
   // above), so it needs no separate gate — and it defaults to x.enabled = true.
   if (params.inserts.length > 0) return false;

@@ -163,6 +163,13 @@ export const FEATURE_MANIFESTS: Record<FeatureKey, FeatureManifest> = {
       handles: { ...p.handles, enabled },
     }),
   },
+
+  sparseBase: {
+    key: 'sparseBase',
+    label: 'Sparse Base',
+    isEnabled: (p) => p.sparseBase.enabled,
+    apply: (p, enabled) => ({ sparseBase: { ...p.sparseBase, enabled } }),
+  },
 };
 
 // Compile-time exhaustiveness: ensures every FeatureKey has a manifest entry.

@@ -17,7 +17,8 @@ export type FeatureKey =
   | 'cutouts'
   | 'slotConfig'
   | 'wallCutouts'
-  | 'handles';
+  | 'handles'
+  | 'sparseBase';
 
 /**
  * Constraint rule: when `source` is active, listed features are disabled.

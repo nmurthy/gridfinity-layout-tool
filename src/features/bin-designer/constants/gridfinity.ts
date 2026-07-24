@@ -111,6 +111,22 @@ export const DESIGNER_CONSTRAINTS = {
   MIN_OVERHANG: 0, // mm
   MAX_OVERHANG: 21, // mm (half a 42mm grid unit — beyond this, add a grid cell)
   OVERHANG_STEP: 0.5, // mm
+  // Sparse base
+  MIN_SPARSE_CORNER_LEG_LENGTH: 5, // mm
+  MAX_SPARSE_CORNER_LEG_LENGTH: 21, // mm
+  SPARSE_CORNER_LEG_LENGTH_STEP: 1, // mm
+  MIN_SPARSE_EDGE_SEGMENT_LENGTH: 5, // mm
+  MAX_SPARSE_EDGE_SEGMENT_LENGTH: 21, // mm
+  SPARSE_EDGE_SEGMENT_LENGTH_STEP: 1, // mm
+  MIN_SPARSE_CENTRAL_LENGTH: 5, // mm
+  MAX_SPARSE_CENTRAL_LENGTH: 30, // mm
+  SPARSE_CENTRAL_LENGTH_STEP: 1, // mm
+  MIN_SPARSE_LOCATOR_BAND: 3, // mm
+  MAX_SPARSE_LOCATOR_BAND: 10, // mm
+  SPARSE_LOCATOR_BAND_STEP: 1, // mm
+  MIN_SPARSE_EXTRA_CLEARANCE: 0, // mm
+  MAX_SPARSE_EXTRA_CLEARANCE: 1, // mm
+  SPARSE_EXTRA_CLEARANCE_STEP: 0.05, // mm
   // Extra exterior wall height — raises the perimeter walls + stacking lip
   // above the nominal bin height (collar). Bounds mirror the lid's
   // extraHeightMm so a bin-side collar and a taller lid stay symmetric.

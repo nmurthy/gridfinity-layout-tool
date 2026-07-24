@@ -19,6 +19,7 @@ import { checkCancelled, isAbortError } from '../../utils/abort';
 import { buildBaseSocket, buildOverhangFeet, baseSocketShapeKey } from '../../socketBuilder';
 import { buildLightweightBase } from '../../lightweightBaseBuilder';
 import type { LightweightBase } from '../../lightweightBaseBuilder';
+import { buildSparseBase, sparseBaseShapeKey } from '../../sparseBaseBuilder';
 import { buildBinBox, buildTopShape } from '../../boxBuilder';
 import { buildBinBoxWithLip } from '../../integratedLipBuilder';
 import { maskHasHoles } from '../../maskPolygon';
@@ -228,23 +229,34 @@ export const shellStage: PipelineStage = {
     // socket. They fuse into the body at export and mesh alongside it at
     // preview exactly like the socket — they only meet the body at the floor
     // interface, never feature-cut.
-    let socket = liteBase
-      ? liteBase.base
-      : buildBaseSocket(
+    let socket = dim.sparse
+      ? buildSparseBase(
           params.width,
           params.depth,
-          dim.withMagnet,
-          dim.withScrew,
-          params.base.magnetDiameter / 2,
-          params.base.magnetDepth,
-          params.base.screwDiameter / 2,
-          true, // Always use full 5-section socket profile (OCCT v8 is fast enough)
+          params.sparseBase,
+          true, // full 5-section foot profile, matching buildBaseSocket's `true` below
           dim.halfSockets,
           pitch,
           params.cellMask,
-          { x: params.fractionalEdgeX, y: params.fractionalEdgeY },
-          params.magnetAnchor
-        );
+          { x: params.fractionalEdgeX, y: params.fractionalEdgeY }
+        )
+      : liteBase
+        ? liteBase.base
+        : buildBaseSocket(
+            params.width,
+            params.depth,
+            dim.withMagnet,
+            dim.withScrew,
+            params.base.magnetDiameter / 2,
+            params.base.magnetDepth,
+            params.base.screwDiameter / 2,
+            true, // Always use full 5-section socket profile (OCCT v8 is fast enough)
+            dim.halfSockets,
+            pitch,
+            params.cellMask,
+            { x: params.fractionalEdgeX, y: params.fractionalEdgeY },
+            params.magnetAnchor
+          );
     // `withScope` can't wrap this section (it must yield TWO survivors — body
     // and socket — on the preview path), so dispose manually on any throw to
     // match the exception-safety the scoped code had: a failed OCCT fuse must
@@ -283,23 +295,34 @@ export const shellStage: PipelineStage = {
       // — so order is geometrically equivalent, just numerically robust.
       // The lightweight base (shelled cups) isn't a standard socket, so it can't
       // share the socket mesh cache — leave its key null to force a fresh mesh.
-      const deferredSolidKey = liteBase
-        ? null
-        : `${baseSocketShapeKey(
+      // The sparse base IS deterministic from its params, so it gets a real key.
+      const deferredSolidKey = dim.sparse
+        ? `${sparseBaseShapeKey(
             params.width,
             params.depth,
-            dim.withMagnet,
-            dim.withScrew,
-            params.base.magnetDiameter / 2,
-            params.base.magnetDepth,
-            params.base.screwDiameter / 2,
-            true,
+            params.sparseBase,
             dim.halfSockets,
             pitch,
             params.cellMask,
-            { x: params.fractionalEdgeX, y: params.fractionalEdgeY },
-            params.magnetAnchor
-          )}|${feetFused ? overhangKey(dim.overhang) : 'nofeet'}`;
+            { x: params.fractionalEdgeX, y: params.fractionalEdgeY }
+          )}|${feetFused ? overhangKey(dim.overhang) : 'nofeet'}`
+        : liteBase
+          ? null
+          : `${baseSocketShapeKey(
+              params.width,
+              params.depth,
+              dim.withMagnet,
+              dim.withScrew,
+              params.base.magnetDiameter / 2,
+              params.base.magnetDepth,
+              params.base.screwDiameter / 2,
+              true,
+              dim.halfSockets,
+              pitch,
+              params.cellMask,
+              { x: params.fractionalEdgeX, y: params.fractionalEdgeY },
+              params.magnetAnchor
+            )}|${feetFused ? overhangKey(dim.overhang) : 'nofeet'}`;
 
       return { ...ctx, solid: body, deferredSolid: socket, deferredSolidKey };
     } catch (e: unknown) {

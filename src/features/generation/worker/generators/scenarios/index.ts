@@ -36,6 +36,7 @@ import { regressions } from './regressions';
 import { solidCutoutMatrix } from './solidCutoutMatrix';
 import { pathfinderOps } from './pathfinderOps';
 import { lightweight } from './lightweight';
+import { sparseBase } from './sparseBase';
 import { labelSockets } from './labelSockets';
 
 export type { ScenarioCase } from '../__kernel-tests__/scenarioTypes';
@@ -75,5 +76,6 @@ export const ALL_SCENARIOS: readonly ScenarioCase[] = [
   ...solidCutoutMatrix,
   ...pathfinderOps,
   ...lightweight,
+  ...sparseBase,
   ...labelSockets,
 ];

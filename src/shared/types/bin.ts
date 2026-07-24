@@ -18,6 +18,7 @@ export type {
   CompartmentConfig,
   ScoopConfig,
   ScoopStyle,
+  SparseBaseConfig,
   LabelTabConfig,
   LabelTabAlignment,
   LabelTabEdges,

@@ -44,6 +44,11 @@ export function deriveDimensions(params: BinParams, _forExport: boolean): BinDim
   // Lightweight shells the socket region; a flat bin has no socket, so the
   // flag is inert there. migrateParams backfills the field on legacy designs.
   const lightweight = params.base.lightweight && !isFlat;
+  // Sparse base replaces the solid socket with a minimal locator lattice.
+  // Constraints already make sparseBase/lightweight mutually exclusive in the
+  // UI, but `&& !lightweight` is cheap insurance against a hand-edited or
+  // pre-constraint-engine design carrying both flags.
+  const sparse = params.sparseBase.enabled && !isFlat && !lightweight;
   const wallHeight = isFlat ? totalHeight : totalHeight - SOCKET_HEIGHT;
   // Exterior-wall collar (issue #2500): raises the outer box + lip above the
   // nominal wall height without touching the interior. Kept separate from
@@ -190,6 +195,7 @@ export function deriveDimensions(params: BinParams, _forExport: boolean): BinDim
     isFlat,
     halfSockets,
     lightweight,
+    sparse,
     solid,
     isSlotted,
     hasLip,

@@ -374,6 +374,30 @@ export interface ScoopConfig {
   readonly autoMaxHeight?: number;
 }
 
+/**
+ * Sparse base configuration: replaces the solid floor's underside socket
+ * with a minimal locator lattice (corner L-legs + optional edge/central
+ * locators) to save filament while keeping baseplate registration. The
+ * floor itself stays solid (contrast `base.lightweight`, which shells it).
+ */
+export interface SparseBaseConfig {
+  readonly enabled: boolean;
+  /** L-leg length at each socket corner, mm. */
+  readonly cornerLegLength: number;
+  /** Locator on each outer edge midpoint. */
+  readonly edgeLocators: boolean;
+  /** Edge locator segment length, mm. */
+  readonly edgeSegmentLength: number;
+  /** Cross-shaped locator clusters at interior 4-cell junctions. */
+  readonly centralLocators: boolean;
+  /** Central cross-arm length, mm. */
+  readonly centralLength: number;
+  /** Radial band width of every locator, mm. */
+  readonly locatorBand: number;
+  /** Extra XY clearance added to the socket foot, mm. */
+  readonly extraClearance: number;
+}
+
 /** Horizontal alignment of each label tab within its compartment column */
 export type LabelTabAlignment = 'left' | 'center' | 'right';
 
@@ -675,6 +699,7 @@ export interface BinParams {
   readonly style: BinStyle;
   readonly compartments: CompartmentConfig;
   readonly scoop: ScoopConfig;
+  readonly sparseBase: SparseBaseConfig;
   readonly label: LabelTabConfig;
   readonly walls: WallConfig;
   readonly handles: HandleConfig;
@@ -1083,6 +1108,7 @@ export interface DesignerState {
   updateBase: (partial: Partial<BaseConfig>) => void;
   updateLabel: (partial: Partial<LabelTabConfig>) => void;
   updateScoop: (partial: Partial<ScoopConfig>) => void;
+  updateSparseBase: (partial: Partial<SparseBaseConfig>) => void;
   updateWalls: (partial: Partial<WallConfig>) => void;
   updateOverhang: (partial: Partial<OverhangConfig>) => void;
   updateWallSide: (side: WallSide, partial: Partial<WallCutout>) => void;

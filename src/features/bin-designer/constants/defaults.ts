@@ -412,6 +412,16 @@ export const DEFAULT_BIN_PARAMS: BinParams = {
     style: 'curved',
     autoMaxHeight: DESIGNER_CONSTRAINTS.MAX_SCOOP_RADIUS,
   },
+  sparseBase: {
+    enabled: false,
+    cornerLegLength: 12,
+    edgeLocators: true,
+    edgeSegmentLength: 12,
+    centralLocators: true,
+    centralLength: 18,
+    locatorBand: 6,
+    extraClearance: 0.25,
+  },
   label: {
     enabled: false,
     support: 'bracket',
@@ -570,6 +580,9 @@ export function migrateParams(params: MigrateParamsInput): BinParams {
 
   // Migrate legacy base.solid=true → style='solid'
   const baseConfig = { ...DEFAULT_BIN_PARAMS.base, ...(params.base ?? {}) };
+
+  // Backfill sparseBase (no legacy shape to migrate from)
+  const sparseBaseConfig = { ...DEFAULT_BIN_PARAMS.sparseBase, ...(params.sparseBase ?? {}) };
   let style = params.style ?? DEFAULT_BIN_PARAMS.style;
   if (baseConfig.solid && style !== 'solid') {
     style = 'solid';
@@ -689,6 +702,7 @@ export function migrateParams(params: MigrateParamsInput): BinParams {
     base: baseConfig,
     compartments: compartmentsConfig,
     scoop: scoopConfig,
+    sparseBase: sparseBaseConfig,
     label: { ...DEFAULT_BIN_PARAMS.label, ...(params.label ?? {}) },
     walls: wallsConfig,
     handles: handlesConfig,

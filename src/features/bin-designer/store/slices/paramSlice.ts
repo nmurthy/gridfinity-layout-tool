@@ -9,6 +9,7 @@ import type {
   BaseConfig,
   LabelTabConfig,
   ScoopConfig,
+  SparseBaseConfig,
   WallConfig,
   OverhangConfig,
   WallCutout,
@@ -179,6 +180,13 @@ export function createParamSlice(set: Set, get: Get) {
       set((state) => {
         pushHistoryEntry(state);
         Object.assign(state.params.scoop, partial);
+      });
+    },
+
+    updateSparseBase: (partial: Partial<SparseBaseConfig>) => {
+      set((state) => {
+        pushHistoryEntry(state);
+        Object.assign(state.params.sparseBase, partial);
       });
     },
 

@@ -106,6 +106,7 @@ const ALLOWED_PARAM_KEYS = new Set<string>([
   'style',
   // Sub-objects (deep-validated below)
   'base',
+  'sparseBase',
   'compartments',
   'dividers', // legacy alternative to compartments
   'label',
@@ -176,6 +177,89 @@ function validateBase(base: unknown): string | null {
     return 'base.screwDiameter must be 1-10';
   }
   if (!isBoolean(base.stackingLip)) return 'base.stackingLip must be boolean';
+  return null;
+}
+
+const ALLOWED_SPARSE_BASE_KEYS = new Set([
+  'enabled',
+  'cornerLegLength',
+  'edgeLocators',
+  'edgeSegmentLength',
+  'centralLocators',
+  'centralLength',
+  'locatorBand',
+  'extraClearance',
+]);
+
+/**
+ * Validate the `sparseBase` object of a designer payload.
+ *
+ * Checks that `sparseBase` is an object with no unknown keys, that `enabled`, `edgeLocators`,
+ * and `centralLocators` are booleans, and that `cornerLegLength`, `edgeSegmentLength`,
+ * `centralLength`, `locatorBand`, and `extraClearance` are numbers within their matching
+ * `CONSTRAINTS.MIN_SPARSE_*`/`MAX_SPARSE_*` range.
+ *
+ * @param value - The value to validate as a designer `sparseBase` object (expected keys: `enabled`, `cornerLegLength`, `edgeLocators`, `edgeSegmentLength`, `centralLocators`, `centralLength`, `locatorBand`, `extraClearance`).
+ * @returns A string describing the first validation error encountered, or `null` if `value` is valid.
+ */
+function validateSparseBase(value: unknown): string | null {
+  if (!isObject(value)) return 'sparseBase must be an object';
+  for (const key of Object.keys(value)) {
+    if (!ALLOWED_SPARSE_BASE_KEYS.has(key)) return `sparseBase has unknown key: ${key}`;
+  }
+  if (!isBoolean(value.enabled)) return 'sparseBase.enabled must be boolean';
+  if (
+    !isNumber(value.cornerLegLength) ||
+    !inRange(
+      value.cornerLegLength,
+      CONSTRAINTS.MIN_SPARSE_CORNER_LEG_LENGTH,
+      CONSTRAINTS.MAX_SPARSE_CORNER_LEG_LENGTH
+    )
+  ) {
+    return `sparseBase.cornerLegLength must be ${CONSTRAINTS.MIN_SPARSE_CORNER_LEG_LENGTH}-${CONSTRAINTS.MAX_SPARSE_CORNER_LEG_LENGTH}`;
+  }
+  if (!isBoolean(value.edgeLocators)) return 'sparseBase.edgeLocators must be boolean';
+  if (
+    !isNumber(value.edgeSegmentLength) ||
+    !inRange(
+      value.edgeSegmentLength,
+      CONSTRAINTS.MIN_SPARSE_EDGE_SEGMENT_LENGTH,
+      CONSTRAINTS.MAX_SPARSE_EDGE_SEGMENT_LENGTH
+    )
+  ) {
+    return `sparseBase.edgeSegmentLength must be ${CONSTRAINTS.MIN_SPARSE_EDGE_SEGMENT_LENGTH}-${CONSTRAINTS.MAX_SPARSE_EDGE_SEGMENT_LENGTH}`;
+  }
+  if (!isBoolean(value.centralLocators)) return 'sparseBase.centralLocators must be boolean';
+  if (
+    !isNumber(value.centralLength) ||
+    !inRange(
+      value.centralLength,
+      CONSTRAINTS.MIN_SPARSE_CENTRAL_LENGTH,
+      CONSTRAINTS.MAX_SPARSE_CENTRAL_LENGTH
+    )
+  ) {
+    return `sparseBase.centralLength must be ${CONSTRAINTS.MIN_SPARSE_CENTRAL_LENGTH}-${CONSTRAINTS.MAX_SPARSE_CENTRAL_LENGTH}`;
+  }
+  if (
+    !isNumber(value.locatorBand) ||
+    !inRange(
+      value.locatorBand,
+      CONSTRAINTS.MIN_SPARSE_LOCATOR_BAND,
+      CONSTRAINTS.MAX_SPARSE_LOCATOR_BAND
+    )
+  ) {
+    return `sparseBase.locatorBand must be ${CONSTRAINTS.MIN_SPARSE_LOCATOR_BAND}-${CONSTRAINTS.MAX_SPARSE_LOCATOR_BAND}`;
+  }
+  if (
+    !isNumber(value.extraClearance) ||
+    !inRange(
+      value.extraClearance,
+      CONSTRAINTS.MIN_SPARSE_EXTRA_CLEARANCE,
+      CONSTRAINTS.MAX_SPARSE_EXTRA_CLEARANCE
+    )
+  ) {
+    return `sparseBase.extraClearance must be ${CONSTRAINTS.MIN_SPARSE_EXTRA_CLEARANCE}-${CONSTRAINTS.MAX_SPARSE_EXTRA_CLEARANCE}`;
+  }
   return null;
 }
 
@@ -815,6 +899,11 @@ export function validateDesignerShare(body: unknown, sizeBytes: number): Designe
   // Sub-objects
   const baseErr = validateBase(params.base);
   if (baseErr) return validationError('INVALID_PARAMS', baseErr);
+
+  if (params.sparseBase !== undefined) {
+    const sparseBaseErr = validateSparseBase(params.sparseBase);
+    if (sparseBaseErr) return validationError('INVALID_PARAMS', sparseBaseErr);
+  }
 
   // Accept either legacy dividers or new compartments format
   if (params.compartments !== undefined) {

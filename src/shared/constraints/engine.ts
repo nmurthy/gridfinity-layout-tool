@@ -29,6 +29,11 @@ function mergeParams(base: BinParams, partial: Partial<BinParams>): BinParams {
       };
     } else if (k === 'scoop' && typeof value === 'object') {
       result.scoop = { ...base.scoop, ...(value as Partial<BinParams['scoop']>) };
+    } else if (k === 'sparseBase' && typeof value === 'object') {
+      result.sparseBase = {
+        ...base.sparseBase,
+        ...(value as Partial<BinParams['sparseBase']>),
+      };
     } else if (k === 'label' && typeof value === 'object') {
       result.label = { ...base.label, ...(value as Partial<BinParams['label']>) };
     } else if (k === 'walls' && typeof value === 'object') {

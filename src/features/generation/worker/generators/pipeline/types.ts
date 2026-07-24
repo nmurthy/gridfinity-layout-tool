@@ -52,6 +52,14 @@ export interface BinDimensions {
    * `withScrew` are set. See `lightweightBaseBuilder`.
    */
   readonly lightweight: boolean;
+  /**
+   * True when the solid socket is replaced by a sparse locator lattice
+   * (corner L's, edge midpoints, central crosses) carved out of the full
+   * feet — a minimal underside for baseplate registration that saves
+   * filament. Forced false for flat/lightweight bins (no socket to carve, or
+   * already reshaped by lightweight). See `sparseBaseBuilder`.
+   */
+  readonly sparse: boolean;
   readonly solid: boolean;
   readonly isSlotted: boolean;
   readonly hasLip: boolean;

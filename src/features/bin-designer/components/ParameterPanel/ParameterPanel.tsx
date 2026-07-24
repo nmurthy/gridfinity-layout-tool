@@ -17,6 +17,7 @@ import { DimensionsSection } from '../panel/DimensionsSection';
 import { ShapeSection } from '../panel/ShapeSection';
 import { InteriorSection } from '../panel/InteriorSection';
 import { BaseSection } from '../panel/BaseSection';
+import { SparseSection } from '../panel/SparseSection';
 import { LabelTabsSection } from '../panel/LabelTabsSection';
 import { ScoopSection } from '../panel/ScoopSection';
 import { WallsSection } from '../panel/WallsSection';
@@ -173,6 +174,9 @@ function BinParameterPanel() {
           <div className="divide-y divide-stroke-subtle/50">
             <PanelSection helpTarget="bd-base">
               <BaseSection />
+            </PanelSection>
+            <PanelSection helpTarget="bd-sparse-base">
+              <SparseSection />
             </PanelSection>
             <PanelSection helpTarget="bd-colors">
               <ColorsSection />
