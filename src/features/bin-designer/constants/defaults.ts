@@ -421,6 +421,7 @@ export const DEFAULT_BIN_PARAMS: BinParams = {
     centralLength: 18,
     locatorBand: 6,
     extraClearance: 0.25,
+    locatorCoverage: 50,
   },
   label: {
     enabled: false,

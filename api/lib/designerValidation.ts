@@ -189,6 +189,7 @@ const ALLOWED_SPARSE_BASE_KEYS = new Set([
   'centralLength',
   'locatorBand',
   'extraClearance',
+  'locatorCoverage',
 ]);
 
 /**
@@ -196,10 +197,10 @@ const ALLOWED_SPARSE_BASE_KEYS = new Set([
  *
  * Checks that `sparseBase` is an object with no unknown keys, that `enabled`, `edgeLocators`,
  * and `centralLocators` are booleans, and that `cornerLegLength`, `edgeSegmentLength`,
- * `centralLength`, `locatorBand`, and `extraClearance` are numbers within their matching
- * `CONSTRAINTS.MIN_SPARSE_*`/`MAX_SPARSE_*` range.
+ * `centralLength`, `locatorBand`, `extraClearance`, and `locatorCoverage` are numbers within
+ * their matching `CONSTRAINTS.MIN_SPARSE_*`/`MAX_SPARSE_*` range.
  *
- * @param value - The value to validate as a designer `sparseBase` object (expected keys: `enabled`, `cornerLegLength`, `edgeLocators`, `edgeSegmentLength`, `centralLocators`, `centralLength`, `locatorBand`, `extraClearance`).
+ * @param value - The value to validate as a designer `sparseBase` object (expected keys: `enabled`, `cornerLegLength`, `edgeLocators`, `edgeSegmentLength`, `centralLocators`, `centralLength`, `locatorBand`, `extraClearance`, `locatorCoverage`).
  * @returns A string describing the first validation error encountered, or `null` if `value` is valid.
  */
 function validateSparseBase(value: unknown): string | null {
@@ -259,6 +260,16 @@ function validateSparseBase(value: unknown): string | null {
     )
   ) {
     return `sparseBase.extraClearance must be ${CONSTRAINTS.MIN_SPARSE_EXTRA_CLEARANCE}-${CONSTRAINTS.MAX_SPARSE_EXTRA_CLEARANCE}`;
+  }
+  if (
+    !isNumber(value.locatorCoverage) ||
+    !inRange(
+      value.locatorCoverage,
+      CONSTRAINTS.MIN_SPARSE_LOCATOR_COVERAGE,
+      CONSTRAINTS.MAX_SPARSE_LOCATOR_COVERAGE
+    )
+  ) {
+    return `sparseBase.locatorCoverage must be ${CONSTRAINTS.MIN_SPARSE_LOCATOR_COVERAGE}-${CONSTRAINTS.MAX_SPARSE_LOCATOR_COVERAGE}`;
   }
   return null;
 }

@@ -906,6 +906,7 @@
   "binDesigner.sparseBaseCentralLength": "Longueur de la croix centrale",
   "binDesigner.sparseBaseLocatorBand": "Largeur de bande des plots",
   "binDesigner.sparseBaseExtraClearance": "Jeu supplémentaire",
+  "binDesigner.sparseBaseLocatorCoverage": "Couverture des plots",
   "binDesigner.splitAssembled": "Assemblé",
   "binDesigner.splitAxisBoth": "largeur × profondeur",
   "binDesigner.splitAxisDepth": "profondeur",

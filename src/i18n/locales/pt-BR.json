@@ -906,6 +906,7 @@
   "binDesigner.sparseBaseCentralLength": "Comprimento da cruz central",
   "binDesigner.sparseBaseLocatorBand": "Largura da faixa do localizador",
   "binDesigner.sparseBaseExtraClearance": "Folga extra",
+  "binDesigner.sparseBaseLocatorCoverage": "Cobertura dos localizadores",
   "binDesigner.splitAssembled": "Montado",
   "binDesigner.splitAxisBoth": "largura × profundidade",
   "binDesigner.splitAxisDepth": "profundidade",

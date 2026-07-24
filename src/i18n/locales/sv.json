@@ -906,6 +906,7 @@
   "binDesigner.sparseBaseCentralLength": "Längd på det centrala korset",
   "binDesigner.sparseBaseLocatorBand": "Bredd på positioneringsbandet",
   "binDesigner.sparseBaseExtraClearance": "Extra spelrum",
+  "binDesigner.sparseBaseLocatorCoverage": "Knopptäckning",
   "binDesigner.splitAssembled": "Monterad",
   "binDesigner.splitAxisBoth": "bredd × djup",
   "binDesigner.splitAxisDepth": "djup",

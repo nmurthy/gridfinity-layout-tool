@@ -31,6 +31,7 @@ describe('SparseSection', () => {
     expect(screen.getByText('Central cross length')).toBeDefined();
     expect(screen.getByText('Locator band width')).toBeDefined();
     expect(screen.getByText('Extra clearance')).toBeDefined();
+    expect(screen.getByText('Locator coverage')).toBeDefined();
     expect(screen.getByText('Edge locators')).toBeDefined();
     expect(screen.getByText('Central locators')).toBeDefined();
   });

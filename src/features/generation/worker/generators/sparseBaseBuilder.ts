@@ -3,35 +3,60 @@
  *
  * Replaces the solid socket underside with a minimal locator lattice: corner
  * L-legs (always present) plus optional edge-midpoint segments and central
- * cross clusters at interior 1u-grid junctions. Unlike the lightweight base
- * (which shells each foot), the floor itself stays solid — only the socket's
- * underside material is trimmed, keeping just enough of the taper profile to
- * register on a standard baseplate.
+ * cross clusters at interior 1u-grid junctions, plus an optional uniform
+ * coverage-density fill grid. Unlike the lightweight base (which shells each
+ * foot), the floor itself stays solid — only the socket's underside material
+ * is trimmed, keeping just enough of the taper profile to register on a
+ * standard baseplate.
  *
  * Construction: build the full per-cell feet (shrunk by `extraClearance` on
  * top of the standard `CLEARANCE`), fuse them into one solid, then intersect
- * that solid with a single global union of axis-aligned "keep" prisms (corner
- * L's, edge segments, central crosses). Every keep prism spans the full
- * socket depth padded by `COPLANAR_MARGIN` top and bottom, so the intersect
- * never produces a face coplanar with the foot's own Z=0 / Z=-SOCKET_HEIGHT
- * faces. Perimeter prisms (corners, edges) are additionally anchored to the
- * shrunk foot's own outer edge — not the raw grid envelope — and pad
- * `COPLANAR_MARGIN` past it in XY too, so their outward face is never
- * coplanar with the foot's own outer face. The central cross arms need no
- * such XY padding: they span the inter-foot gap and reach into all 4
- * neighboring feet, so they never sit flush against a foot's own boundary.
+ * that solid with a single global union of "keep" prisms (corner L's, edge
+ * segments, central crosses, coverage-grid squares). Every keep prism is a
+ * frustum, not a vertical box: its top rectangle (at Z≈0) is wider than its
+ * bottom rectangle (at Z≈-SOCKET_HEIGHT) by `FLARE_REACH` on every side, so
+ * the loft's side walls slope outward at (approximately) 45° as they rise.
+ * Bins print feet-down, so a flat Z=0 floor bridging the gap between two
+ * locators is an unsupported horizontal span — droop. Flaring every locator
+ * outward as it approaches Z=0 turns each gap-facing wall into a ≤45°
+ * self-supporting ramp instead, and where two opposing flares meet, the
+ * floor above is continuously supported rather than bridged. Growing a
+ * keep-prism's footprint is always safe even where it overshoots a foot's
+ * true boundary: the single global `intersect` against the true foot union
+ * clips the overgrowth back to the foot, so only the gap-facing ramps
+ * survive and a locator's own registration on the foot's outer taper is
+ * unaffected.
  *
- * The keep-prism union must be built globally (all corners/edges/crosses
- * fused together) and intersected once against the whole feet union — a
- * central cross at a 4-cell junction straddles four separate feet by
+ * Every keep prism still spans the full socket depth padded by
+ * `COPLANAR_MARGIN` top and bottom, so the intersect never produces a face
+ * coplanar with the foot's own Z=0 / Z=-SOCKET_HEIGHT faces. Perimeter
+ * prisms (corners, edges) are additionally anchored to the shrunk foot's own
+ * outer edge — not the raw grid envelope — and pad `COPLANAR_MARGIN` past it
+ * in XY too (at the *bottom* rectangle; the flare grows from there), so
+ * their outward face is never coplanar with the foot's own outer face. The
+ * central cross arms and coverage-grid squares need no such XY padding: they
+ * sit away from any single foot's own boundary by construction (a junction
+ * cross straddles 4 feet; a grid square's pitch is chosen not to line up
+ * with the foot pitch), so they never sit flush against a foot's own
+ * boundary.
+ *
+ * The keep-prism union must be built globally (all corners/edges/crosses/grid
+ * squares fused together) and intersected once against the whole feet union
+ * — a central cross at a 4-cell junction straddles four separate feet by
  * construction, so it can't be resolved with a per-cell intersect.
+ *
+ * The coverage-density grid (`cfg.locatorCoverage`, 0–100%) is an additional,
+ * purely additive lattice of flared square locators stepped across the whole
+ * envelope at a coverage-controlled pitch — denser coverage packs locators
+ * (and therefore self-supporting ramps) more tightly, independent of the
+ * fixed corner/edge/central pattern above.
  *
  * Coordinate system matches the socket: Z=0 top (mates with body),
  * Z=-SOCKET_HEIGHT bottom. XY-centered on the bin footprint.
  */
 
-import { box, unwrap, fuseAll, intersect, translate, withScope } from 'brepjs';
-import type { Shape3D, ValidSolid, DisposalScope } from 'brepjs';
+import { drawRectangle, unwrap, fuseAll, intersect, translate, clone, withScope } from 'brepjs';
+import type { Shape3D, ValidSolid, Sketch, DisposalScope } from 'brepjs';
 import { SIZE, CLEARANCE, SOCKET_HEIGHT, COPLANAR_MARGIN } from './generatorConstants';
 import { resolvePitch, pitchKeySegments, type GridUnitInput } from './gridPitch';
 import {
@@ -52,6 +77,35 @@ const CORNER_SIGNS: ReadonlyArray<readonly [number, number]> = [
   [-1, 1],
   [1, 1],
 ];
+
+/**
+ * Lateral spread (mm) a flared keep-prism's top rectangle grows past its
+ * bottom rectangle, on every side. Equal to `SOCKET_HEIGHT` (5mm) so a wall
+ * rising the full socket depth grows 5mm outward over that same 5mm rise —
+ * a true 45° flare, closing gaps up to 2×5=10mm between opposing locators.
+ * (The Z padding each prism adds past the real socket depth for coplanarity
+ * safety, see `COPLANAR_MARGIN`, rides along on the same loft and only makes
+ * the wall a little shallower than 45° — strictly safer, never a droop
+ * risk.) Tried and kept at the full 5mm: it didn't add excessive volume in
+ * testing, and a smaller cap would leave wider gaps unsupported.
+ */
+const FLARE_REACH = SOCKET_HEIGHT;
+
+/**
+ * Coverage-fill lattice size at 100% coverage: an n×n grid of interior flared
+ * locators, with n scaling linearly from 0 (0% coverage) up to this value
+ * (100%). Deliberately small and BIN-SIZE-INDEPENDENT: every extra lattice
+ * point is a lofted frustum that must be fused into the keep-union and
+ * intersected with the feet, and OCCT boolean cost grows superlinearly with
+ * the solid count. Bounding the lattice to n² keeps a sparse socket rebuilding
+ * in a few seconds — there is NO instant draft for sparse bins, so every sparse
+ * edit waits on the exact BREP build. The trade: a large bin at 100% coverage
+ * gets a coarser interior lattice (points spread with size), not a fine one;
+ * the 45° flares still shorten the residual floor bridges, and
+ * locatorBand/cornerLegLength/etc. add more support if needed. Raising this
+ * re-introduces the multi-minute fuse/intersect blowup it replaced.
+ */
+const DENSITY_MAX_N = 3;
 
 /**
  * Build the sparse-locator base for a bin footprint.
@@ -129,17 +183,47 @@ export function buildSparseBase(
     const footInset = CLEARANCE / 2 + cfg.extraClearance;
     const xOut = totalW / 2 - footInset;
     const yOut = totalD / 2 - footInset;
-    const H = SOCKET_HEIGHT + 2 * COPLANAR_MARGIN;
-    const cz = -SOCKET_HEIGHT / 2;
-    const keepPrisms: ValidSolid[] = [];
+    const keepPrisms: Shape3D[] = [];
 
     // Center + full length of a perimeter band along one axis: `reach`
     // inward from the foot's outer edge (`out`, on the `sign` side),
     // extended `COPLANAR_MARGIN` outward past it so the prism's outward face
-    // never lands coplanar with the foot's own outer face.
+    // never lands coplanar with the foot's own outer face. This is the
+    // BOTTOM-rectangle footprint the flare then grows outward from.
     const bandLen = (reach: number): number => reach + COPLANAR_MARGIN;
     const bandCenter = (sign: number, out: number, reach: number): number =>
       sign * (out + (COPLANAR_MARGIN - reach) / 2);
+
+    // Flared-prism templates, keyed by quantized (wBottom, dBottom): every
+    // corner leg / edge segment / central arm / coverage-grid square repeats
+    // its exact footprint size across several positions (all 4 corners share
+    // 2 sizes; every interior junction shares the same 2 central-arm sizes;
+    // every coverage-grid square shares 1 size), so lofting once and cloning
+    // per position turns what would be dozens-to-hundreds of ThruSections
+    // calls into a handful, mirroring `getCellSocketTemplate` in socketBuilder.
+    const flareTemplates = new Map<string, Shape3D>();
+    const flaredTemplate = (wBottom: number, dBottom: number): Shape3D => {
+      const key = `${quantize(wBottom)}x${quantize(dBottom)}`;
+      const cached = flareTemplates.get(key);
+      if (cached) return cached;
+      const zBot = -SOCKET_HEIGHT - COPLANAR_MARGIN;
+      const zTop = COPLANAR_MARGIN;
+      const bottomSketch = drawRectangle(wBottom, dBottom).sketchOnPlane('XY', zBot) as Sketch;
+      const topSketch = drawRectangle(
+        wBottom + 2 * FLARE_REACH,
+        dBottom + 2 * FLARE_REACH
+      ).sketchOnPlane('XY', zTop) as Sketch;
+      const frustum = scope.register(bottomSketch.loftWith(topSketch, { ruled: true }));
+      flareTemplates.set(key, frustum);
+      return frustum;
+    };
+
+    // Build one 45°-flared keep-prism centered at `(cx, cy)`: bottom
+    // rectangle `wBottom × dBottom` (the footprint the old vertical box
+    // prism used), top rectangle grown by `FLARE_REACH` on every side,
+    // spanning the same padded Z range the box prisms did.
+    const flaredPrism = (cx: number, cy: number, wBottom: number, dBottom: number): Shape3D =>
+      translate(scope.register(unwrap(clone(flaredTemplate(wBottom, dBottom)))), [cx, cy, 0]);
 
     // Corner L's — always built, one per foot-outer-edge corner: two
     // overlapping legs (hugging the Y edge and the X edge) meeting inward
@@ -147,26 +231,20 @@ export function buildSparseBase(
     for (const [sx, sy] of CORNER_SIGNS) {
       // Horizontal leg — hugs the Y edge, reaches inward along X.
       keepPrisms.push(
-        scope.register(
-          box(bandLen(cfg.cornerLegLength), bandLen(cfg.locatorBand), H, {
-            at: [
-              bandCenter(sx, xOut, cfg.cornerLegLength),
-              bandCenter(sy, yOut, cfg.locatorBand),
-              cz,
-            ],
-          })
+        flaredPrism(
+          bandCenter(sx, xOut, cfg.cornerLegLength),
+          bandCenter(sy, yOut, cfg.locatorBand),
+          bandLen(cfg.cornerLegLength),
+          bandLen(cfg.locatorBand)
         )
       );
       // Vertical leg — hugs the X edge, reaches inward along Y.
       keepPrisms.push(
-        scope.register(
-          box(bandLen(cfg.locatorBand), bandLen(cfg.cornerLegLength), H, {
-            at: [
-              bandCenter(sx, xOut, cfg.locatorBand),
-              bandCenter(sy, yOut, cfg.cornerLegLength),
-              cz,
-            ],
-          })
+        flaredPrism(
+          bandCenter(sx, xOut, cfg.locatorBand),
+          bandCenter(sy, yOut, cfg.cornerLegLength),
+          bandLen(cfg.locatorBand),
+          bandLen(cfg.cornerLegLength)
         )
       );
     }
@@ -176,19 +254,21 @@ export function buildSparseBase(
     if (cfg.edgeLocators && !(gridW === 1 && gridD === 1)) {
       for (const sx of [-1, 1] as const) {
         keepPrisms.push(
-          scope.register(
-            box(bandLen(cfg.locatorBand), cfg.edgeSegmentLength, H, {
-              at: [bandCenter(sx, xOut, cfg.locatorBand), 0, cz],
-            })
+          flaredPrism(
+            bandCenter(sx, xOut, cfg.locatorBand),
+            0,
+            bandLen(cfg.locatorBand),
+            cfg.edgeSegmentLength
           )
         );
       }
       for (const sy of [-1, 1] as const) {
         keepPrisms.push(
-          scope.register(
-            box(cfg.edgeSegmentLength, bandLen(cfg.locatorBand), H, {
-              at: [0, bandCenter(sy, yOut, cfg.locatorBand), cz],
-            })
+          flaredPrism(
+            0,
+            bandCenter(sy, yOut, cfg.locatorBand),
+            cfg.edgeSegmentLength,
+            bandLen(cfg.locatorBand)
           )
         );
       }
@@ -208,12 +288,36 @@ export function buildSparseBase(
           if (!junctionFilled(k, l)) continue;
           const jx = k * unitX - totalW / 2;
           const jy = l * unitY - totalD / 2;
-          keepPrisms.push(
-            scope.register(box(cfg.centralLength, cfg.locatorBand, H, { at: [jx, jy, cz] }))
-          );
-          keepPrisms.push(
-            scope.register(box(cfg.locatorBand, cfg.centralLength, H, { at: [jx, jy, cz] }))
-          );
+          keepPrisms.push(flaredPrism(jx, jy, cfg.centralLength, cfg.locatorBand));
+          keepPrisms.push(flaredPrism(jx, jy, cfg.locatorBand, cfg.centralLength));
+        }
+      }
+    }
+
+    // Coverage-density fill — a small, bin-size-INDEPENDENT n×n lattice of
+    // flared square locators (footprint `locatorBand × locatorBand`) placed at
+    // interior positions, added on top of the fixed corner/edge/central
+    // pattern. `n` scales with coverage (0 → none, 100 → DENSITY_MAX_N per
+    // axis) and is hard-bounded so the fuse/intersect stays fast for
+    // interactive edits regardless of bin size (see DENSITY_MAX_N). Points sit
+    // strictly interior (i,j ∈ 1..n over a step of total/(n+1)) — the droop
+    // zone — and skip any point whose containing 1u cell isn't in the mask.
+    const n = Math.round((cfg.locatorCoverage / 100) * DENSITY_MAX_N);
+    if (n > 0) {
+      const stepX = totalW / (n + 1);
+      const stepY = totalD / (n + 1);
+      const lastCol = Math.floor(gridW) - 1;
+      const lastRow = Math.floor(gridD) - 1;
+      for (let i = 1; i <= n; i++) {
+        const gx = -totalW / 2 + i * stepX;
+        const colIdx = Math.min(Math.max(Math.floor((gx + totalW / 2) / unitX), 0), lastCol);
+        const cellCenterX = (colIdx + 0.5) * unitX - totalW / 2;
+        for (let j = 1; j <= n; j++) {
+          const gy = -totalD / 2 + j * stepY;
+          const rowIdx = Math.min(Math.max(Math.floor((gy + totalD / 2) / unitY), 0), lastRow);
+          const cellCenterY = (rowIdx + 0.5) * unitY - totalD / 2;
+          if (!cellInMask(cellCenterX, cellCenterY, 1, 1)) continue;
+          keepPrisms.push(flaredPrism(gx, gy, cfg.locatorBand, cfg.locatorBand));
         }
       }
     }
@@ -222,7 +326,7 @@ export function buildSparseBase(
     // whole solid foot rather than intersect against nothing.
     if (keepPrisms.length === 0) return base;
 
-    const keepUnion = unwrap(fuseAll(keepPrisms, { optimisation: 'commonFace' }));
+    const keepUnion = unwrap(fuseAll(keepPrisms as ValidSolid[], { optimisation: 'commonFace' }));
     for (const p of keepPrisms) if (p !== keepUnion) p.delete();
 
     try {
@@ -275,7 +379,8 @@ export function sparseBaseShapeKey(
       cfg.centralLocators,
       quantize(cfg.centralLength),
       quantize(cfg.locatorBand),
-      quantize(cfg.extraClearance)
+      quantize(cfg.extraClearance),
+      quantize(cfg.locatorCoverage)
     )
   );
 }

@@ -1849,6 +1849,7 @@ const en: Record<string, string> = {
   'binDesigner.sparseBaseCentralLength': 'Central cross length',
   'binDesigner.sparseBaseLocatorBand': 'Locator band width',
   'binDesigner.sparseBaseExtraClearance': 'Extra clearance',
+  'binDesigner.sparseBaseLocatorCoverage': 'Locator coverage',
   'binDesigner.wallThickness': 'Wall thickness',
   'binDesigner.wallThickness.0.4': 'Ultra-thin, fragile—light contents only',
   'binDesigner.wallThickness.0.6': 'Thin and economical for light loads',
@@ -1879,7 +1880,8 @@ const en: Record<string, string> = {
   'binDesigner.flatFloorDisablesSparseBase': 'Flat base has no socket for locators',
   'binDesigner.sparseBaseDisablesFlatFloor': 'Cannot combine a sparse base with a flat base',
   'binDesigner.lightweightDisablesSparseBase': 'Lightweight floor already reshapes the socket',
-  'binDesigner.sparseBaseDisablesLightweight': 'Cannot combine a sparse base with a lightweight floor',
+  'binDesigner.sparseBaseDisablesLightweight':
+    'Cannot combine a sparse base with a lightweight floor',
   'binDesigner.magnetDisablesSparseBase': 'Magnet holes need full feet to hold the magnets',
   'binDesigner.sparseBaseDisablesMagnet': 'Cannot combine a sparse base with magnet holes',
   'binDesigner.screwDisablesSparseBase': 'Screw holes need full feet',

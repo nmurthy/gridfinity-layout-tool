@@ -127,6 +127,9 @@ export const DESIGNER_CONSTRAINTS = {
   MIN_SPARSE_EXTRA_CLEARANCE: 0, // mm
   MAX_SPARSE_EXTRA_CLEARANCE: 1, // mm
   SPARSE_EXTRA_CLEARANCE_STEP: 0.05, // mm
+  MIN_SPARSE_LOCATOR_COVERAGE: 0, // %
+  MAX_SPARSE_LOCATOR_COVERAGE: 100, // %
+  SPARSE_LOCATOR_COVERAGE_STEP: 5, // %
   // Extra exterior wall height — raises the perimeter walls + stacking lip
   // above the nominal bin height (collar). Bounds mirror the lid's
   // extraHeightMm so a bin-side collar and a taller lid stay symmetric.

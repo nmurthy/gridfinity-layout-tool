@@ -47,4 +47,18 @@ describe('buildSparseBase', () => {
     const fullFeet = buildBaseSocket(2, 2, false, false, 0, 0, 0, true, true);
     expect(volumeOf(sparse)).toBeLessThan(volumeOf(fullFeet));
   }, 30000);
+
+  it('more coverage adds more material, both still short of full feet', () => {
+    const sparseFull = buildSparseBase(2, 2, { ...cfg, locatorCoverage: 100 }, true);
+    const sparseNone = buildSparseBase(2, 2, { ...cfg, locatorCoverage: 0 }, true);
+    expect(meshShape(sparseFull).triangles.length).toBeGreaterThan(0);
+    expect(meshShape(sparseNone).triangles.length).toBeGreaterThan(0);
+
+    const fullFeet = buildBaseSocket(2, 2, false, false, 0, 0, 0, true);
+    const volFull = volumeOf(sparseFull);
+    const volNone = volumeOf(sparseNone);
+    expect(volFull).toBeGreaterThan(volNone);
+    expect(volFull).toBeLessThan(volumeOf(fullFeet));
+    expect(volNone).toBeLessThan(volumeOf(fullFeet));
+  }, 30000);
 });

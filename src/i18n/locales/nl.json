@@ -906,6 +906,7 @@
   "binDesigner.sparseBaseCentralLength": "Lengte van het centrale kruis",
   "binDesigner.sparseBaseLocatorBand": "Breedte van de locatiestrook",
   "binDesigner.sparseBaseExtraClearance": "Extra speling",
+  "binDesigner.sparseBaseLocatorCoverage": "Nokkendekking",
   "binDesigner.splitAssembled": "Samengesteld",
   "binDesigner.splitAxisBoth": "breedte × diepte",
   "binDesigner.splitAxisDepth": "diepte",

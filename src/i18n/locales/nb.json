@@ -906,6 +906,7 @@
   "binDesigner.sparseBaseCentralLength": "Lengde på det sentrale krysset",
   "binDesigner.sparseBaseLocatorBand": "Bredde på posisjoneringsbåndet",
   "binDesigner.sparseBaseExtraClearance": "Ekstra klaring",
+  "binDesigner.sparseBaseLocatorCoverage": "Knasterdekning",
   "binDesigner.splitAssembled": "Sammensatt",
   "binDesigner.splitAxisBoth": "bredde × dybde",
   "binDesigner.splitAxisDepth": "dybde",

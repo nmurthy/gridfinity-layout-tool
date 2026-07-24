@@ -906,6 +906,7 @@
   "binDesigner.sparseBaseCentralLength": "Länge des Mittelkreuzes",
   "binDesigner.sparseBaseLocatorBand": "Stegbreite der Positionierer",
   "binDesigner.sparseBaseExtraClearance": "Zusätzliches Spiel",
+  "binDesigner.sparseBaseLocatorCoverage": "Positionierer-Abdeckung",
   "binDesigner.splitAssembled": "Zusammengebaut",
   "binDesigner.splitAxisBoth": "Breite × Tiefe",
   "binDesigner.splitAxisDepth": "Tiefe",

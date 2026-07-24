@@ -63,6 +63,13 @@ export function useSparseSection() {
     [updateSparseBase]
   );
 
+  const setLocatorCoverage = useCallback(
+    (value: number) => {
+      updateSparseBase({ locatorCoverage: value });
+    },
+    [updateSparseBase]
+  );
+
   const toggleEdgeLocators = useCallback(() => {
     updateSparseBase({ edgeLocators: !sparseBase.edgeLocators });
   }, [sparseBase.edgeLocators, updateSparseBase]);
@@ -80,6 +87,7 @@ export function useSparseSection() {
       setCentralLength,
       setLocatorBand,
       setExtraClearance,
+      setLocatorCoverage,
       toggleEdgeLocators,
       toggleCentralLocators,
     },

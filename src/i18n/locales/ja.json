@@ -906,6 +906,7 @@
   "binDesigner.sparseBaseCentralLength": "中央クロスの長さ",
   "binDesigner.sparseBaseLocatorBand": "位置決めバンドの幅",
   "binDesigner.sparseBaseExtraClearance": "追加クリアランス",
+  "binDesigner.sparseBaseLocatorCoverage": "位置決めカバー率",
   "binDesigner.splitAssembled": "組み立て表示",
   "binDesigner.splitAxisBoth": "幅×奥行き",
   "binDesigner.splitAxisDepth": "奥行き",

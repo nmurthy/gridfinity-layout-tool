@@ -55,6 +55,16 @@ export const sparseBase: ScenarioCase[] = [
     params: { width: 2, depth: 2, sparseBase: { ...sparse, extraClearance: 0.5 } },
   }),
 
+  defineScenario('sparseBase', '2×2 sparse, coverage 0', {
+    assert: 'structural',
+    params: { width: 2, depth: 2, sparseBase: { ...sparse, locatorCoverage: 0 } },
+  }),
+
+  defineScenario('sparseBase', '2×2 sparse, coverage 100', {
+    assert: 'structural',
+    params: { width: 2, depth: 2, sparseBase: { ...sparse, locatorCoverage: 100 } },
+  }),
+
   // Multiple interior junctions (2 columns × 2 rows of interior crosses).
   defineScenario('sparseBase', '3×3 sparse', {
     assert: 'structural',

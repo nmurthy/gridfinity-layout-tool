@@ -90,6 +90,16 @@ describe('useSparseSection', () => {
     expect(useDesignerStore.getState().params.sparseBase.extraClearance).toBe(0.5);
   });
 
+  it('setLocatorCoverage updates locatorCoverage', () => {
+    const { result } = renderHook(() => useSparseSection());
+
+    act(() => {
+      result.current.handlers.setLocatorCoverage(75);
+    });
+
+    expect(useDesignerStore.getState().params.sparseBase.locatorCoverage).toBe(75);
+  });
+
   it('toggleEdgeLocators flips edgeLocators', () => {
     const { result } = renderHook(() => useSparseSection());
 

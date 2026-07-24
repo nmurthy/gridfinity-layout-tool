@@ -906,6 +906,7 @@
   "binDesigner.sparseBaseCentralLength": "Довжина центрального хреста",
   "binDesigner.sparseBaseLocatorBand": "Ширина смуги фіксатора",
   "binDesigner.sparseBaseExtraClearance": "Додатковий зазор",
+  "binDesigner.sparseBaseLocatorCoverage": "Покриття фіксаторів",
   "binDesigner.splitAssembled": "Зібрано",
   "binDesigner.splitAxisBoth": "ширини × глибини",
   "binDesigner.splitAxisDepth": "глибини",

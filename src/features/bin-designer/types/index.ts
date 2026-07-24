@@ -396,6 +396,13 @@ export interface SparseBaseConfig {
   readonly locatorBand: number;
   /** Extra XY clearance added to the socket foot, mm. */
   readonly extraClearance: number;
+  /**
+   * Interior/edge locator fill density, 0–100%. Higher packs more (45°-flared)
+   * locators across the underside → shorter unsupported floor spans (fully
+   * droop-free once gaps close under the flares, ~75%+); lower saves more
+   * filament. 0 = just the corner/edge/central locators.
+   */
+  readonly locatorCoverage: number;
 }
 
 /** Horizontal alignment of each label tab within its compartment column */
