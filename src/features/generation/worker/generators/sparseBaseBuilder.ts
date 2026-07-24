@@ -55,7 +55,16 @@
  * Z=-SOCKET_HEIGHT bottom. XY-centered on the bin footprint.
  */
 
-import { drawRectangle, unwrap, fuseAll, intersect, translate, clone, withScope } from 'brepjs';
+import {
+  box,
+  drawRectangle,
+  unwrap,
+  fuseAll,
+  intersect,
+  translate,
+  clone,
+  withScope,
+} from 'brepjs';
 import type { Shape3D, ValidSolid, Sketch, DisposalScope } from 'brepjs';
 import { SIZE, CLEARANCE, SOCKET_HEIGHT, COPLANAR_MARGIN } from './generatorConstants';
 import { resolvePitch, pitchKeySegments, type GridUnitInput } from './gridPitch';
@@ -90,28 +99,6 @@ const CORNER_SIGNS: ReadonlyArray<readonly [number, number]> = [
  * testing, and a smaller cap would leave wider gaps unsupported.
  */
 const FLARE_REACH = SOCKET_HEIGHT;
-
-/**
- * Interior coverage-fill lattice size: a FIXED n×n grid of flared square
- * locators placed whenever coverage > 0. Coverage scales each square's
- * FOOTPRINT, not the point count — so the knob stays smooth (every step visibly
- * grows the fill) while the solid count, and thus the OCCT fuse/intersect cost,
- * stays fixed and BIN-SIZE-INDEPENDENT. (A count-driven lattice can't be both:
- * a bounded count gives only a few discrete steps, and one center point lands
- * on the existing central cross and reads as no change.) Deliberately small:
- * every lattice point is a lofted frustum fused into the keep-union, boolean
- * cost grows superlinearly with the count, and there is NO instant draft for
- * sparse bins, so this cost is paid on every edit. A large bin gets the same
- * n×n lattice spread wider (coarser fill), not more points; the 45° flares
- * shorten residual bridges and locatorBand/lengths add support if needed.
- *
- * Kept at 2 (a 2×2 interior lattice, 4 points): it sits OFF the bin center so
- * none of its points coincide with the central-cross junction (which would read
- * as "no change"), and 4 mostly-disjoint squares fuse fast. 3×3 puts a point on
- * the center and — once size-scaled toward full — overlaps enough that the union
- * cost blows past the watchdog.
- */
-const DENSITY_MAX_N = 2;
 
 /**
  * Build the sparse-locator base for a bin footprint.
@@ -300,38 +287,31 @@ export function buildSparseBase(
       }
     }
 
-    // Coverage-density fill — a FIXED DENSITY_MAX_N × DENSITY_MAX_N lattice of
-    // flared square locators at strictly-interior positions (i,j ∈ 1..n over a
-    // step of total/(n+1) — the droop zone), added on top of the fixed
-    // corner/edge/central pattern. Coverage scales each square's FOOTPRINT from
-    // `locatorBand` (just switched on) up toward ~0.85·step (squares nearly
-    // meet at 100% → the flares then close the interior); the point COUNT is
-    // fixed so build cost stays bounded and every slider step visibly grows the
-    // fill. Points whose containing 1u cell isn't in the mask are skipped.
+    // Coverage-density fill — a single continuous solid "web" spanning the
+    // whole footprint that keeps the top `webThickness` of every foot, on top
+    // of the sparse locators. Because it is continuous it FULLY SUPPORTS THE
+    // BIN FLOOR (no floor droop) at any coverage that yields a printable web,
+    // and it scales smoothly from nothing (0% → just the flared locators, max
+    // savings) to the full foot depth (100% → the socket is solid feet again,
+    // fully covered). It is one box intersected with the feet, so it stays
+    // cheap regardless of bin size — unlike a discrete lattice it can reach full
+    // coverage without a boolean blow-up. The web's own underside (between the
+    // locators, deep inside the socket) is the only face left bridging; the 45°
+    // flares shorten it and it faces the baseplate, hidden. The web box spans
+    // Z ∈ [−webThickness, +COPLANAR_MARGIN] so its top clears the foot's Z=0
+    // face (never coplanar) and its bottom cuts a clean web-underside plane.
     if (cfg.locatorCoverage > 0) {
-      const n = DENSITY_MAX_N;
-      const stepX = totalW / (n + 1);
-      const stepY = totalD / (n + 1);
-      const t = cfg.locatorCoverage / 100;
-      // Cap square growth at 0.6·step so 100% squares stay mostly disjoint (the
-      // flares then bridge the remaining gap) — larger squares overlap heavily
-      // and the union cost blows up.
-      const sizeX = cfg.locatorBand + t * Math.max(0, 0.6 * stepX - cfg.locatorBand);
-      const sizeY = cfg.locatorBand + t * Math.max(0, 0.6 * stepY - cfg.locatorBand);
-      const lastCol = Math.floor(gridW) - 1;
-      const lastRow = Math.floor(gridD) - 1;
-      for (let i = 1; i <= n; i++) {
-        const gx = -totalW / 2 + i * stepX;
-        const colIdx = Math.min(Math.max(Math.floor((gx + totalW / 2) / unitX), 0), lastCol);
-        const cellCenterX = (colIdx + 0.5) * unitX - totalW / 2;
-        for (let j = 1; j <= n; j++) {
-          const gy = -totalD / 2 + j * stepY;
-          const rowIdx = Math.min(Math.max(Math.floor((gy + totalD / 2) / unitY), 0), lastRow);
-          const cellCenterY = (rowIdx + 0.5) * unitY - totalD / 2;
-          if (!cellInMask(cellCenterX, cellCenterY, 1, 1)) continue;
-          keepPrisms.push(flaredPrism(gx, gy, sizeX, sizeY));
-        }
-      }
+      const webThickness = (cfg.locatorCoverage / 100) * SOCKET_HEIGHT;
+      keepPrisms.push(
+        scope.register(
+          box(
+            totalW + 2 * COPLANAR_MARGIN,
+            totalD + 2 * COPLANAR_MARGIN,
+            webThickness + COPLANAR_MARGIN,
+            { at: [0, 0, (COPLANAR_MARGIN - webThickness) / 2] }
+          )
+        )
+      );
     }
 
     // Degenerate (should not happen — corner L's are unconditional): keep the

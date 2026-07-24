@@ -397,10 +397,11 @@ export interface SparseBaseConfig {
   /** Extra XY clearance added to the socket foot, mm. */
   readonly extraClearance: number;
   /**
-   * Interior/edge locator fill density, 0–100%. Higher packs more (45°-flared)
-   * locators across the underside → shorter unsupported floor spans (fully
-   * droop-free once gaps close under the flares, ~75%+); lower saves more
-   * filament. 0 = just the corner/edge/central locators.
+   * Underside solid-fill coverage, 0–100%. 0 = just the sparse
+   * corner/edge/central locators (maximum filament savings). Higher keeps a
+   * continuous solid layer under the bin floor of increasing depth, fully
+   * supporting it (no floor droop); 100% ≈ full feet. Trades filament for
+   * floor support.
    */
   readonly locatorCoverage: number;
 }
